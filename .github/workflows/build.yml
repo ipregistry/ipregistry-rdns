@@ -20,6 +20,7 @@ jobs:
       - name: Use JDK ${{ matrix.java }}
         uses: actions/setup-java@v3
         with:
+          cache: 'gradle'
           distribution: ${{ matrix.distribution }}
           java-version: ${{ matrix.java }}
       - name: Build with Gradle
