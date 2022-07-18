@@ -27,4 +27,4 @@ jobs:
         run: ./gradlew build
         env:
           GH_PACKAGES_READ_TOKEN: ${{ secrets.GH_PACKAGES_READ_TOKEN }}
-          GH_PACKAGES_WRITE_TOKEN: ${{ secrets.GH_PACKAGES_WRITE_TOKEN }}
+          GH_PACKAGES_USER: ${{ secrets.GH_PACKAGEs_USER }}
