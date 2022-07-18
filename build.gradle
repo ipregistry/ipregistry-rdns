@@ -1,0 +1,92 @@
+import java.text.SimpleDateFormat
+
+plugins {
+    id 'com.github.ben-manes.versions' version '0.42.0'
+    id 'java-library'
+    id 'maven-publish'
+    id 'signing'
+}
+
+repositories {
+    mavenCentral()
+    maven {
+        url = 'https://maven.pkg.github.com/ipregistry/ipregistry-ineter'
+    }
+}
+
+group = 'co.ipregistry'
+version = '1.0.0'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+dependencies {
+    implementation 'com.google.guava:guava:31.1-jre'
+    implementation 'co.ipregistry:ipregistry-ineter:2.2.3'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.8.1'
+}
+
+jar {
+    manifest {
+        attributes(
+                'Built-By': System.properties['user.name'],
+                'Build-Timestamp': new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(new Date()),
+                'Build-Jdk': "${System.properties['java.version']} (${System.properties['java.vendor']} ${System.properties['java.vm.version']})",
+                'Build-OS': "${System.properties['os.name']} ${System.properties['os.arch']} ${System.properties['os.version']}",
+                'Created-By': 'Gradle ${gradle.gradleVersion}',
+                'Name': 'co/ipregistry/rdns',
+                'Specification-Title': 'Ipregistry rDNS library',
+                'Specification-Version': project.version,
+                'Specification-Vendor': 'Ipregistry',
+                'Implementation-Title': 'co.ipregistry.rdns',
+                'Implementation-Version': project.version,
+                'Implementation-Vendor': 'Ipregistry',
+        )
+    }
+}
+
+task sourceJar(type: Jar) {
+    classifier "sources"
+    from sourceSets.main.allJava
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier "javadoc"
+    from javadoc.destinationDir
+}
+
+javadoc.options.addStringOption('Xdoclint:none', '-quiet')
+
+artifacts {
+    archives jar
+    archives sourceJar
+    archives javadocJar
+}
+
+publishing {
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/ipregistry/ipregistry-rdns")
+            credentials {
+                username = project.findProperty("gpr.user") ?: System.getenv("GH_PACKAGES_USER")
+                password = project.findProperty("gpr.key") ?: System.getenv("GH_PACKAGES_WRITE_TOKEN")
+            }
+        }
+    }
+    publications {
+        github(org.gradle.api.publish.maven.MavenPublication) {
+            groupId = 'co.ipregistry'
+            artifactId = 'ipregistry-rdns'
+            version = project.version
+
+            from(components.java)
+        }
+    }
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
