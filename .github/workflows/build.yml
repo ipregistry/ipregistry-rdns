@@ -1,0 +1,26 @@
+name: Java CI
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        distribution: [ 'zulu' ]
+        java: [ '17' ]
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use JDK ${{ matrix.java }}
+        uses: actions/setup-java@v3
+        with:
+          distribution: ${{ matrix.distribution }}
+          java-version: ${{ matrix.java }}
+      - name: Build with Gradle
+        run: ./gradlew build
