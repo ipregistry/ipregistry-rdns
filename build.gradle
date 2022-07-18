@@ -12,8 +12,8 @@ repositories {
     maven {
         url = 'https://maven.pkg.github.com/ipregistry/ipregistry-ineter'
         credentials {
-            username = project.findProperty("gpr.user") ?: System.getenv("GH_PACKAGES_USER")
-            password = project.findProperty("gpr.key") ?: System.getenv("GH_PACKAGES_WRITE_TOKEN")
+            username System.getenv("GH_PACKAGES_USER")
+            password System.getenv("GH_PACKAGES_READ_TOKEN")
         }
     }
 }
