@@ -132,13 +132,13 @@ public final class ReverseDomainNameService {
         }
     }
 
-    private static String getIpv4ReverseDomain(final IpAddress inetAddress) {
+    static String getIpv4ReverseDomain(final IpAddress inetAddress) {
         final String ip = inetAddress.toString();
         final String[] chunks = ip.split("\\.");
         return chunks[3] + "." + chunks[2] + "." + chunks[1] + "." + chunks[0] + "." + REVERSE_DNS_DOMAIN_IPV4;
     }
 
-    private static String getIpv6ReverseDomain(final IpAddress inetAddress) {
+    static String getIpv6ReverseDomain(final IpAddress inetAddress) {
         final byte[] bytes = inetAddress.toBigEndianArray();
         return reverseNibblesName(bytes) + REVERSE_DNS_DOMAIN_IPV6;
     }
