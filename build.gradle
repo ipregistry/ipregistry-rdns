@@ -29,7 +29,7 @@ java {
 dependencies {
     implementation 'com.google.guava:guava:31.1-jre'
     implementation 'co.ipregistry:ipregistry-ineter:2.2.3'
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.8.2'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.9.0'
 }
 
 jar {
