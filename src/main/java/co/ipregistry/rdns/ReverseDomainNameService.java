@@ -11,14 +11,11 @@ import javax.naming.directory.InitialDirContext;
 import java.net.InetAddress;
 import java.util.Hashtable;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 
-public final class ReverseDomainNameService {
+public final class ReverseDomainNameService implements AutoCloseable {
 
     private final static char[] HEXADECIMAL_CHARACTERS =
             new char[]{'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
@@ -57,6 +54,20 @@ public final class ReverseDomainNameService {
         this.attemptReferenceCounter = new ConcurrentHashMap<>(attemptReferenceCounterInitialCapacity, 0.75f, parallelism);
         this.cache = cache;
         this.threadPool = Executors.newWorkStealingPool(parallelism);
+    }
+
+    @Override
+    public void close() {
+        threadPool.shutdown();
+        try {
+            if (!threadPool.awaitTermination(1, TimeUnit.SECONDS)) {
+                threadPool.shutdownNow();
+                threadPool.awaitTermination(1, TimeUnit.SECONDS);
+            }
+        } catch (InterruptedException ie) {
+            threadPool.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
     }
 
     public Cache getCache() {
@@ -157,6 +168,10 @@ public final class ReverseDomainNameService {
     static String getIpv6ReverseDomain(final IpAddress inetAddress) {
         final byte[] bytes = inetAddress.toBigEndianArray();
         return reverseNibblesName(bytes) + REVERSE_DNS_DOMAIN_IPV6;
+    }
+
+    public ExecutorService getThreadPool() {
+        return threadPool;
     }
 
     public static String reverseNibblesName(final byte[] bytes) {
