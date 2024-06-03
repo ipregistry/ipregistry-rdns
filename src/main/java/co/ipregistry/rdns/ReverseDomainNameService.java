@@ -47,7 +47,7 @@ public final class ReverseDomainNameService {
         );
     }
 
-    private ReverseDomainNameService(
+    public ReverseDomainNameService(
             final Cache cache,
             final int parallelism,
             final int attemptReferenceCounterInitialCapacity,
@@ -57,6 +57,10 @@ public final class ReverseDomainNameService {
         this.attemptReferenceCounter = new ConcurrentHashMap<>(attemptReferenceCounterInitialCapacity, 0.75f, parallelism);
         this.cache = cache;
         this.threadPool = Executors.newWorkStealingPool(parallelism);
+    }
+
+    public Cache getCache() {
+        return cache;
     }
 
     public CompletableFuture<String> lookup(final InetAddress ip) {
@@ -74,22 +78,24 @@ public final class ReverseDomainNameService {
             final String hostname = doLookup(ip);
 
             if (hostname == null) {
-                final AtomicInteger attemptCount = attemptReferenceCounter.compute(ip, (ipAddress, counter) -> {
-                    if (counter == null) {
-                        return new AtomicInteger(1);
-                    }
+                if (attemptCountBeforeCachingEmptyResponse > -1) {
+                    final AtomicInteger attemptCount = attemptReferenceCounter.compute(ip, (ipAddress, counter) -> {
+                        if (counter == null) {
+                            return new AtomicInteger(1);
+                        }
 
-                    if (counter.incrementAndGet() == attemptCountBeforeCachingEmptyResponse) {
+                        if (counter.incrementAndGet() == attemptCountBeforeCachingEmptyResponse) {
+                            return null;
+                        }
+
+                        return counter;
+                    });
+                    if (attemptCount == null) {
+                        cache.put(ip, NullCacheEntry.getInstance());
                         return null;
+                    } else {
+                        attemptReferenceCounter.put(ip, new AtomicInteger(1));
                     }
-
-                    return counter;
-                });
-                if (attemptCount == null) {
-                    cache.put(ip, NullCacheEntry.getInstance());
-                    return null;
-                } else {
-                    attemptReferenceCounter.put(ip, new AtomicInteger(1));
                 }
 
                 return null;

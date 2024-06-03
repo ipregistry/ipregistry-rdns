@@ -5,6 +5,8 @@ import co.ipregistry.ineter.base.Ipv6Address;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
@@ -54,6 +56,33 @@ public final class ReverseDomainNameServiceTest {
         Assertions.assertEquals("dns.google", responseOne);
         Assertions.assertEquals("dns.google", responseTwo);
         Assertions.assertEquals(System.identityHashCode(responseOne), System.identityHashCode(responseTwo));
+    }
+
+
+    @Test
+    public void testNullCachingDisabled() throws ExecutionException, InterruptedException {
+        int parallelism = Runtime.getRuntime().availableProcessors() * 16;
+        final ReverseDomainNameService reverseDomainNameService =
+                new ReverseDomainNameService(
+                        new InMemoryCache(
+                                1024 * 1024,
+                                Duration.of(24, ChronoUnit.HOURS),
+                                parallelism
+                        ),
+                        parallelism,
+                        1000,
+                        -1
+                );
+
+        final Ipv4Address ipWithNoRdn = Ipv4Address.of("81.18.81.18");
+        final String nullResponse = reverseDomainNameService.lookup(ipWithNoRdn).get();
+        Assertions.assertNull(nullResponse);
+        Assertions.assertNull(reverseDomainNameService.getCache().get(ipWithNoRdn));
+
+        final Ipv4Address ipWithRdn = Ipv4Address.of("8.8.8.8");
+        final String nonNullResponse = reverseDomainNameService.lookup(ipWithRdn).get();
+        Assertions.assertNotNull(nonNullResponse);
+        Assertions.assertNotNull(reverseDomainNameService.getCache().get(ipWithRdn));
     }
 
 }
