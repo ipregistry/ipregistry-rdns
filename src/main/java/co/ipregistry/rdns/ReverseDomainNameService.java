@@ -36,24 +36,30 @@ public final class ReverseDomainNameService implements AutoCloseable {
 
 
     public ReverseDomainNameService() {
+        this(Runtime.getRuntime().availableProcessors() * 16);
+    }
+
+    public ReverseDomainNameService(int concurrency) {
         this(
+                Executors.newVirtualThreadPerTaskExecutor(),
                 new InMemoryCache(),
-                Runtime.getRuntime().availableProcessors() * 16,
+                concurrency,
                 1000,
                 2
         );
     }
 
     public ReverseDomainNameService(
+            final ExecutorService threadPool,
             final Cache cache,
-            final int parallelism,
+            final int concurrency,
             final int attemptReferenceCounterInitialCapacity,
             final int attemptCountBeforeCachingEmptyResponse) {
 
         this.attemptCountBeforeCachingEmptyResponse = attemptCountBeforeCachingEmptyResponse;
-        this.attemptReferenceCounter = new ConcurrentHashMap<>(attemptReferenceCounterInitialCapacity, 0.75f, parallelism);
+        this.attemptReferenceCounter = new ConcurrentHashMap<>(attemptReferenceCounterInitialCapacity, 0.75f, concurrency);
         this.cache = cache;
-        this.threadPool = Executors.newWorkStealingPool(parallelism);
+        this.threadPool = threadPool;
     }
 
     @Override

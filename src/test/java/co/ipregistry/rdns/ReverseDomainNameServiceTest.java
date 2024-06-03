@@ -9,6 +9,7 @@ import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
 
 public final class ReverseDomainNameServiceTest {
 
@@ -64,6 +65,7 @@ public final class ReverseDomainNameServiceTest {
         int parallelism = Runtime.getRuntime().availableProcessors() * 16;
         final ReverseDomainNameService reverseDomainNameService =
                 new ReverseDomainNameService(
+                        Executors.newVirtualThreadPerTaskExecutor(),
                         new InMemoryCache(
                                 1024 * 1024,
                                 Duration.of(24, ChronoUnit.HOURS),
