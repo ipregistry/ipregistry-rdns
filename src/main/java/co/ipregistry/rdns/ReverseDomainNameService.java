@@ -3,6 +3,7 @@ package co.ipregistry.rdns;
 import co.ipregistry.ineter.base.IpAddress;
 
 import javax.naming.Context;
+import javax.naming.NamingException;
 import javax.naming.directory.Attribute;
 import javax.naming.directory.Attributes;
 import javax.naming.directory.DirContext;
@@ -101,15 +102,17 @@ public final class ReverseDomainNameService {
     }
 
     private String doLookup(final IpAddress ip) {
+        final Hashtable<String, String> env = new Hashtable<>(1, 1f);
+        env.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.dns.DnsContextFactory");
+
+        DirContext context = null;
         try {
             /*
              * Use a newly InitialDirContext every time, since JNDI specifies
              * that concurrent access to the same Context instance is not
              * guaranteed to be thread-safe
              */
-            final Hashtable<String, String> env = new Hashtable<>(1, 1f);
-            env.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.dns.DnsContextFactory");
-            final DirContext context = new InitialDirContext(env);
+            context = new InitialDirContext(env);
 
             final Attributes attrs =
                     context.getAttributes(
@@ -125,10 +128,17 @@ public final class ReverseDomainNameService {
             }
 
             final String hostname = (String) ptrs.get(0);
-            context.close();
             return hostname.substring(0, hostname.length() - 1).intern();
-        } catch (final javax.naming.NamingException e) {
+        } catch (final NamingException e) {
             return null;
+        } finally {
+            if (context != null) {
+                try {
+                    context.close();
+                } catch (NamingException e) {
+                    // ignore
+                }
+            }
         }
     }
 
