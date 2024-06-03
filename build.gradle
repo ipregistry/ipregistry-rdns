@@ -1,7 +1,6 @@
 import java.text.SimpleDateFormat
 
 plugins {
-    id 'com.github.ben-manes.versions' version '0.42.0'
     id 'java-library'
     id 'maven-publish'
     id 'signing'
@@ -19,17 +18,20 @@ repositories {
 }
 
 group = 'co.ipregistry'
-version = '1.0.0'
+version = '2.0.0'
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
+    withJavadocJar()
+    withSourcesJar()
+
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
 }
 
 dependencies {
-    implementation 'com.google.guava:guava:31.1-jre'
-    implementation 'co.ipregistry:ipregistry-ineter:2.2.3'
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.9.0'
+    implementation 'com.google.guava:guava:33.2.1-jre'
+    implementation 'co.ipregistry:ipregistry-ineter:3.0.0'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
 }
 
 jar {
@@ -51,22 +53,10 @@ jar {
     }
 }
 
-task sourceJar(type: Jar) {
-    classifier "sources"
-    from sourceSets.main.allJava
-}
-
-task javadocJar(type: Jar, dependsOn: javadoc) {
-    classifier "javadoc"
-    from javadoc.destinationDir
-}
-
-javadoc.options.addStringOption('Xdoclint:none', '-quiet')
-
-artifacts {
-    archives jar
-    archives sourceJar
-    archives javadocJar
+javadoc {
+    if(JavaVersion.current().isJava9Compatible()) {
+        options.addBooleanOption('html5', true)
+    }
 }
 
 publishing {
