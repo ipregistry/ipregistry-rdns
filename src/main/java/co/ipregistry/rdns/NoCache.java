@@ -2,6 +2,9 @@ package co.ipregistry.rdns;
 
 import co.ipregistry.ineter.base.IpAddress;
 
+/**
+ * A no-op cache implementation that does not store any entries.
+ */
 public final class NoCache implements Cache {
 
     private NoCache() {

@@ -2,11 +2,19 @@ package co.ipregistry.rdns;
 
 import java.util.Objects;
 
+/**
+ * A cache entry that contains a hostname.
+ */
 public final class HostnameCacheEntry implements CacheEntry {
 
     private final String hostname;
 
 
+    /**
+     * Constructs a new hostname cache entry.
+     *
+     * @param hostname the hostname to cache
+     */
     public HostnameCacheEntry(final String hostname) {
         this.hostname = hostname;
     }

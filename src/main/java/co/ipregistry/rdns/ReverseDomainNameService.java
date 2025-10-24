@@ -15,11 +15,18 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 
+/**
+ * A service for performing reverse DNS lookups to resolve IP addresses to hostnames.
+ * This service uses JNDI to query DNS servers and provides caching and concurrency support.
+ */
 public final class ReverseDomainNameService implements AutoCloseable {
 
     private final static char[] HEXADECIMAL_CHARACTERS =
             new char[]{'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
 
+    /**
+     * The DNS attribute IDs to query for reverse DNS lookups.
+     */
     public static final String[] LOOKUP_ATTRIBUTE_IDS = {"PTR"};
 
     private static final String REVERSE_DNS_DOMAIN_IPV4 = "in-addr.arpa";
@@ -35,10 +42,20 @@ public final class ReverseDomainNameService implements AutoCloseable {
     private final ExecutorService threadPool;
 
 
+    /**
+     * Constructs a new reverse DNS service with default settings.
+     * Uses a concurrency level based on available processors (16 times the number of processors).
+     */
     public ReverseDomainNameService() {
         this(Runtime.getRuntime().availableProcessors() * 16);
     }
 
+    /**
+     * Constructs a new reverse DNS service with the specified concurrency level.
+     * Uses virtual threads and an in-memory cache with default settings.
+     *
+     * @param concurrency the concurrency level for the cache
+     */
     public ReverseDomainNameService(int concurrency) {
         this(
                 Executors.newVirtualThreadPerTaskExecutor(),
@@ -49,6 +66,15 @@ public final class ReverseDomainNameService implements AutoCloseable {
         );
     }
 
+    /**
+     * Constructs a new reverse DNS service with custom settings.
+     *
+     * @param threadPool the executor service to use for asynchronous lookups
+     * @param cache the cache implementation to use for storing lookup results
+     * @param concurrency the concurrency level for internal data structures
+     * @param attemptReferenceCounterInitialCapacity the initial capacity for the attempt counter
+     * @param attemptCountBeforeCachingEmptyResponse the number of failed lookup attempts before caching null results, or -1 to disable
+     */
     public ReverseDomainNameService(
             final ExecutorService threadPool,
             final Cache cache,
@@ -76,14 +102,31 @@ public final class ReverseDomainNameService implements AutoCloseable {
         }
     }
 
+    /**
+     * Returns the cache instance used by this service.
+     *
+     * @return the cache instance
+     */
     public Cache getCache() {
         return cache;
     }
 
+    /**
+     * Performs a reverse DNS lookup for the given IP address.
+     *
+     * @param ip the IP address to look up
+     * @return a CompletableFuture that will contain the hostname, or null if not found
+     */
     public CompletableFuture<String> lookup(final InetAddress ip) {
         return lookup(IpAddress.of(ip));
     }
 
+    /**
+     * Performs a reverse DNS lookup for the given IP address.
+     *
+     * @param ip the IP address to look up
+     * @return a CompletableFuture that will contain the hostname, or null if not found
+     */
     public CompletableFuture<String> lookup(final IpAddress ip) {
         final CacheEntry cachedHostname = cache.get(ip);
 
@@ -176,10 +219,22 @@ public final class ReverseDomainNameService implements AutoCloseable {
         return reverseNibblesName(bytes) + REVERSE_DNS_DOMAIN_IPV6;
     }
 
+    /**
+     * Returns the thread pool used by this service for asynchronous operations.
+     *
+     * @return the executor service
+     */
     public ExecutorService getThreadPool() {
         return threadPool;
     }
 
+    /**
+     * Converts a byte array to a reverse nibbles DNS name format.
+     * This is used for IPv6 reverse DNS lookups.
+     *
+     * @param bytes the byte array to convert
+     * @return the reverse nibbles name string
+     */
     public static String reverseNibblesName(final byte[] bytes) {
         final int inputLength = bytes.length;
         final StringBuilder result = new StringBuilder();

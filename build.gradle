@@ -18,20 +18,23 @@ repositories {
 }
 
 group = 'co.ipregistry'
-version = '2.0.0'
+version = '3.0.0'
 
 java {
     withJavadocJar()
     withSourcesJar()
 
-    sourceCompatibility = JavaVersion.VERSION_21
-    targetCompatibility = JavaVersion.VERSION_21
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
 }
 
 dependencies {
-    implementation 'com.google.guava:guava:33.2.1-jre'
-    implementation 'co.ipregistry:ipregistry-ineter:3.0.0'
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
+    implementation 'com.google.guava:guava:33.5.0-jre'
+    implementation 'co.ipregistry:ipregistry-ineter:4.0.0'
+
+    testImplementation platform('org.junit:junit-bom:6.0.0')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 jar {
