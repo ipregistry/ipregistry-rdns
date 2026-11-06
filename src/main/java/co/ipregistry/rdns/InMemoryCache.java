@@ -5,7 +5,6 @@ import com.google.common.cache.CacheBuilder;
 
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
-import java.util.concurrent.TimeUnit;
 
 /**
  * An in-memory cache implementation for reverse DNS lookups using Guava cache.
@@ -44,7 +43,7 @@ public final class InMemoryCache implements Cache {
                 CacheBuilder.newBuilder()
                         .concurrencyLevel(parallelism)
                         .maximumSize(cacheSize)
-                        .expireAfterWrite(cacheTimeout.getSeconds(), TimeUnit.SECONDS)
+                        .expireAfterWrite(cacheTimeout)
                         .build();
     }
 
